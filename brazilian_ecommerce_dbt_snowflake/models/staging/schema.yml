@@ -1,0 +1,213 @@
+version: 2
+
+sources:
+  - name: brazilian_ecommerce
+    description: "Raw data imported from the Brazilian E-commerce dataset."
+    database: BRAZILIAN_DB
+    schema: DBT_SCHEMA
+    tables:
+      - name: orders
+        description: "This table contains information about orders."
+        columns:
+          - name: order_id
+            description: "Unique identifier for the order."
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: "Identifier for the customer who placed the order."
+            data_type: string
+          - name: order_status
+            description: "Current status of the order (e.g., delivered, shipped)."
+            data_type: string
+          - name: order_purchase_timestamp
+            description: "Timestamp when the order was placed."
+            data_type: timestamp
+          - name: order_approved_at
+            description: "Timestamp when the order was approved."
+            data_type: timestamp
+          - name: order_delivered_carrier_date
+            description: "Timestamp when the order was handed to the carrier."
+            data_type: timestamp
+          - name: order_delivered_customer_date
+            description: "Timestamp when the order was delivered to the customer."
+            data_type: timestamp
+          - name: order_estimated_delivery_date
+            description: "Estimated delivery date for the order."
+            data_type: timestamp
+
+      - name: customers
+        description: "Raw table containing customer information."
+        columns:
+          - name: customer_id
+            description: "Unique identifier for the customer."
+            data_type: string
+            tests:
+              - unique
+              - not_null
+          - name: customer_unique_id
+            description: "Unique identifier for the customer (used for linking to other datasets)."
+            data_type: string
+          - name: customer_zip_code_prefix
+            description: "Zip code prefix for the customer's location."
+            data_type: string
+          - name: customer_city
+            description: "City where the customer is located."
+            data_type: string
+          - name: customer_state
+            description: "State where the customer is located."
+            data_type: string
+
+      - name: products
+        description: "Raw table containing product information."
+        columns:
+          - name: product_id
+            description: "Unique identifier for the product."
+            data_type: string
+            tests:
+              - unique
+              - not_null
+          - name: product_category_name
+            description: "Name of the product category."
+            data_type: string
+          - name: product_name_lenght
+            description: "Length of the product name."
+            data_type: float
+          - name: product_description_lenght
+            description: "Length of the product description."
+            data_type: float
+          - name: product_photos_qty
+            description: "Number of photos available for the product."
+            data_type: float
+          - name: product_weight_g
+            description: "Weight of the product in grams."
+            data_type: float
+          - name: product_length_cm
+            description: "Length of the product in centimeters."
+            data_type: float
+          - name: product_height_cm
+            description: "Height of the product in centimeters."
+            data_type: float
+          - name: product_width_cm
+            description: "Width of the product in centimeters."
+            data_type: float
+
+      - name: sellers
+        description: "Raw table containing seller information."
+        columns:
+          - name: seller_id
+            description: "Unique identifier for the seller."
+            data_type: string
+            tests:
+              - unique
+              - not_null
+          - name: seller_zip_code_prefix
+            description: "Zip code prefix for the seller's location."
+            data_type: string
+          - name: seller_city
+            description: "City where the seller is located."
+            data_type: string
+          - name: seller_state
+            description: "State where the seller is located."
+            data_type: string
+
+      - name: order_items
+        description: "Raw table containing information about items in each order."
+        columns:
+          - name: order_id
+            description: "Identifier for the order."
+            data_type: string
+          - name: order_item_id
+            description: "Identifier for the item within the order."
+            data_type: integer
+          - name: product_id
+            description: "Identifier for the product."
+            data_type: string
+          - name: seller_id
+            description: "Identifier for the seller."
+            data_type: string
+          - name: shipping_limit_date
+            description: "Timestamp for the shipping limit date."
+            data_type: timestamp
+          - name: price
+            description: "Price of the item."
+            data_type: float
+          - name: freight_value
+            description: "Freight value for the item."
+            data_type: float
+
+      - name: order_payments
+        description: "Raw table containing payment information for orders."
+        columns:
+          - name: order_id
+            description: "Identifier for the order."
+            data_type: string
+          - name: payment_sequential
+            description: "Sequential number for the payment."
+            data_type: integer
+          - name: payment_type
+            description: "Type of payment (e.g., credit card, voucher)."
+            data_type: string
+          - name: payment_installments
+            description: "Number of installments for the payment."
+            data_type: integer
+          - name: payment_value
+            description: "Value of the payment."
+            data_type: float
+
+      - name: order_reviews
+        description: "Raw table containing customer reviews for orders."
+        columns:
+          - name: review_id
+            description: "Unique identifier for the review."
+            data_type: string
+            tests:
+              - unique
+              - not_null
+          - name: order_id
+            description: "Identifier for the order."
+            data_type: string
+          - name: review_score
+            description: "Score given by the customer (e.g., 1 to 5)."
+            data_type: integer
+          - name: review_comment_title
+            description: "Title of the review comment."
+            data_type: string
+          - name: review_comment_message
+            description: "Message of the review comment."
+            data_type: string
+          - name: review_creation_date
+            description: "Timestamp when the review was created."
+            data_type: timestamp
+          - name: review_answer_timestamp
+            description: "Timestamp when the review was answered."
+            data_type: timestamp
+
+      - name: geolocation
+        description: "Raw table containing geolocation data for customers and sellers."
+        columns:
+          - name: geolocation_zip_code_prefix
+            description: "Zip code prefix for the geolocation."
+            data_type: string
+          - name: geolocation_lat
+            description: "Latitude of the location."
+            data_type: float
+          - name: geolocation_lng
+            description: "Longitude of the location."
+            data_type: float
+          - name: geolocation_city
+            description: "City of the location."
+            data_type: string
+          - name: geolocation_state
+            description: "State of the location."
+            data_type: string
+
+      - name: product_category_translation
+        description: "Raw table containing translations for product category names."
+        columns:
+          - name: product_category_name
+            description: "Original product category name."
+            data_type: string
+          - name: product_category_name_english
+            description: "Translated product category name in English."
+            data_type: string
