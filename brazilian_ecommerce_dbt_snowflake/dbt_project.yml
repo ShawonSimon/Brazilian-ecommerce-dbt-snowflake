@@ -33,8 +33,28 @@ models:
   brazilian_ecommerce:
     # Config indicated by + and applies to all files under models/example/
     staging:
-      +materialized: table
-      snowflake_warehouse: BrazilianEC
+      +schema: staging
+      +materialized: view
+      +tags: ["staging"]
+      orders:
+        +alias: stg_orders
+      customers:
+        +alias: stg_customers
+      products:
+        +alias: stg_products
+      sellers:
+        +alias: stg_sellers
+      order_items:
+        +alias: stg_order_items
+      order_payments:
+        +alias: stg_order_payments
+      order_reviews:
+        +alias: stg_order_reviews
+      geolocation:
+        +alias: stg_geolocation
+      product_category_translation:
+        +alias: stg_product_category_translation
+    
     marts:
       +materialized: table
       snowflake_warehouse: BrazilianEC
