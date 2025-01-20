@@ -57,4 +57,10 @@ models:
     
     marts:
       +materialized: table
-      snowflake_warehouse: BrazilianEC
+      +schema: marts
+      +materialized: table
+      +tags: ["marts"]
+      core:
+        +schema: core
+        +materialized: table
+        +tags: ["core"]
