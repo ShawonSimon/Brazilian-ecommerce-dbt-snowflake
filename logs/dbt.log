@@ -24,3 +24,7 @@ Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
 Happy modeling!
 
 [0m00:58:48.486318 [info ] [MainThread]: Setting up your profile.
+[0m01:03:55.753503 [info ] [MainThread]: Profile brazilian_ecommerce_dbt_snowflake written to C:\Users\simon\.dbt\profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m01:03:55.759722 [debug] [MainThread]: Command `dbt init` succeeded at 01:03:55.758204 after 362.10 seconds
+[0m01:03:55.765520 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002917CD7F740>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002917D09BC80>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002917C5098E0>]}
+[0m01:03:55.768571 [debug] [MainThread]: Flushing usage events
