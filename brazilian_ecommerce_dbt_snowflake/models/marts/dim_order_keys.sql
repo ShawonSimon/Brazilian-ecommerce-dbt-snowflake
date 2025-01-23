@@ -1,7 +1,7 @@
 WITH order_keys AS (
     SELECT
         order_id,
-        {{ dbt_utils.surrogate_key(['order_id']) }} AS order_key
+        {{ dbt_utils.generate_surrogate_key(['order_id']) }} AS order_key
     FROM {{ ref('stg_orders') }}
 )
 
