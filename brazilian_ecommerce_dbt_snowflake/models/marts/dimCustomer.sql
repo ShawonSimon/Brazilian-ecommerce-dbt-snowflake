@@ -1,20 +1,22 @@
-WITH dim_customer AS (
-    SELECT
-        ok.order_key,
-        op.order_id,
-        op.payment_sequential,
-        op.payment_type,
-        op.payment_installments,
-        op.payment_value
-    FROM {{ ref('stg_order_payments') }} op
-    LEFT JOIN {{ ref('dim_order_keys') }} ok ON op.order_id = ok.order_id
+WITH unique_customers AS (
+    SELECT DISTINCT
+        dim_customer_keys.customer_key,
+        stg_customers.customer_id,
+        stg_customers.customer_unique_id,
+        stg_customers.customer_city,
+        stg_customers.customer_state,
+        FIRST_VALUE(stg_geolocation.geolocation_lat) OVER (
+            PARTITION BY stg_customers.customer_id 
+            ORDER BY stg_customers.customer_id
+        ) AS geolocation_lat,
+        FIRST_VALUE(stg_geolocation.geolocation_lng) OVER (
+            PARTITION BY stg_customers.customer_id 
+            ORDER BY stg_customers.customer_id
+        ) AS geolocation_lng
+    FROM {{ ref('stg_customers') }} 
+    LEFT JOIN {{ ref('dim_customer_keys') }} ON stg_customers.customer_id = dim_customer_keys.customer_id 
+    LEFT JOIN {{ ref('stg_geolocation') }} ON stg_customers.customer_zip_code_prefix = stg_geolocation.geolocation_zip_code_prefix 
 )
-
-SELECT
-    order_key,
-    order_id,
-    payment_sequential,
-    payment_type,
-    payment_installments,
-    payment_value
-FROM dim_customer
+SELECT *
+FROM unique_customers
+ORDER BY customer_key
