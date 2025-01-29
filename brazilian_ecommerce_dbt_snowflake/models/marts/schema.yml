@@ -1,0 +1,262 @@
+# models/schema.yml
+
+version: 2
+
+models:
+  - name: dim_dates
+    description: "Date dimension table containing all dates relevant to Olist orders"
+    columns:
+      - name: date_key
+        description: "The surrogate key for the date"
+        tests:
+          - unique
+          - not_null
+          
+      - name: calendar_date
+        description: "The actual calendar date"
+        tests:
+          - unique
+          - not_null
+          
+      - name: year
+        description: "Calendar year"
+        tests:
+          - not_null
+          
+      - name: quarter
+        description: "Calendar quarter (1-4)"
+        tests:
+          - not_null
+          
+      - name: month
+        description: "Calendar month (1-12)"
+        tests:
+          - not_null
+          
+      - name: day
+        description: "Day of month (1-31)"
+        tests:
+          - not_null
+          
+      - name: day_of_week
+        description: "Day of week (0-6, where 0 is Sunday)"
+        tests:
+          - not_null
+          
+      - name: season
+        description: "Season adjusted for Southern Hemisphere"
+        tests:
+          - not_null
+          
+      - name: is_business_day
+        description: "Flag indicating if date is a business day (0/1)"
+        tests:
+          - not_null
+                    
+      - name: fiscal_quarter
+        description: "Fiscal quarter (1-4)"
+        tests:
+          - not_null
+
+  - name: dim_sellers
+    description: "Seller dimension table containing seller information and their associated orders"
+    columns:
+      - name: seller_key
+        description: "The surrogate key for the seller"
+        tests:
+          - unique
+          - not_null
+
+      - name: seller_id
+        description: "The natural key / business identifier for the seller"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('stg_sellers')
+              field: seller_id
+
+      - name: seller_city
+        description: "The city where the seller is located"
+        tests:
+          - not_null
+
+      - name: seller_state
+        description: "The state where the seller is located"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'ES', 'GO', 'AM', 'CE', 'RN', 'MT', 'MS', 'PA', 'PB', 'PE', 'PI', 'AL', 'DF', 'SE', 'RO', 'MA', 'TO', 'AC', 'RR', 'AP']  # Brazilian state codes
+
+      - name: order_ids
+        description: "Array of order IDs associated with this seller"
+        tests:
+          - not_null
+  
+  - name: dim_customers
+    description: "Customer dimension table containing customer information and their geographical location details"
+    columns:
+      - name: customer_key
+        description: "The surrogate key for the customer"
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "The natural key / business identifier for the customer"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+
+      - name: customer_unique_id
+        description: "Unique identifier that can be used to identify recurring customers across multiple orders"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_unique_id
+
+      - name: customer_city
+        description: "The city where the customer is located"
+        tests:
+          - not_null
+
+      - name: customer_state
+        description: "The state where the customer is located"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'ES', 'GO', 'AM', 'CE', 'RN', 'MT', 'MS', 'PA', 'PB', 'PE', 'PI', 'AL', 'DF', 'SE', 'RO', 'MA', 'TO', 'AC', 'RR', 'AP']  # Brazilian state codes
+
+      - name: geolocation_lat
+        description: "Customer location latitude based on zip code prefix"
+        tests:
+          - not_null:
+              severity: warn  # Warning only since this comes from a LEFT JOIN
+          - dbt_utils.accepted_range:
+              min_value: -33.75  # Approximate southernmost point of Brazil
+              max_value: 5.27    # Approximate northernmost point of Brazil
+
+      - name: geolocation_lng
+        description: "Customer location longitude based on zip code prefix"
+        tests:
+          - not_null:
+              severity: warn  # Warning only since this comes from a LEFT JOIN
+          - dbt_utils.accepted_range:
+              min_value: -73.99  # Approximate westernmost point of Brazil
+              max_value: -34.79  # Approximate easternmost point of Brazil 
+  
+  - name: dim_payment_types
+    description: "Payment types dimension table mapping orders to their payment methods"
+    columns:
+      - name: order_key
+        description: "Foreign key to the order dimension table"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_order_keys')
+              field: order_key
+
+      - name: payment_type_key
+        description: "Surrogate key for the payment type"
+        tests:
+          - not_null
+          - relationships_with_keys:
+              from_key: payment_type_key
+              to_model: ref('dim_payment_types')
+              to_key: payment_type_key
+
+      - name: payment_type_name
+        description: "Name of the payment method (e.g., credit_card, boleto)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: 
+                - 'credit_card'
+                - 'boleto'
+                - 'voucher'
+                - 'debit_card'
+    
+    # Table-level tests
+    tests:
+      - unique:
+          column_name: "order_key"  # Each order should have one payment type
+      - not_null:
+          column_name: "payment_type_name"
+
+  - name: dim_products
+    description: "Product dimension table containing product information and categories"
+    columns:
+      - name: product_key
+        description: "The surrogate key for the product"
+        tests:
+          - unique
+          - not_null
+
+      - name: product_id
+        description: "The natural key / business identifier for the product"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('stg_products')
+              field: product_id
+
+      - name: product_category_name
+        description: "The category name of the product"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [
+                'cama_mesa_banho',
+                'beleza_saude',
+                'esporte_lazer',
+                'moveis_decoracao',
+                'informatica_acessorios',
+                'utilidades_domesticas',
+                'relogios_presentes',
+                'telefonia',
+                'automotivo',
+                'brinquedos',
+                'cool_stuff',
+                'perfumaria',
+                'bebes',
+                'eletronicos',
+                'papelaria',
+                'fashion_bolsas_e_acessorios',
+                'fashion_calcados',
+                'fashion_roupa_masculina',
+                'fashion_roupa_feminina',
+                'fashion_underwear_e_moda_praia',
+                'fashion_esporte',
+                'alimentos_bebidas',
+                'artes_e_artesanato',
+                'ferramentas_jardim',
+                'construcao_ferramentas_construcao',
+                'construcao_ferramentas_jardim',
+                'livros_tecnicos',
+                'livros_interesse_geral',
+                'musica',
+                'eletrodomesticos',
+                'casa_conforto',
+                'casa_construcao',
+                'moveis_sala',
+                'moveis_quarto',
+                'moveis_escritorio',
+                'moveis_cozinha_area_de_servico_jantar_e_jardim',
+                'climatizacao',
+                'sinalizacao_e_seguranca'
+              ]
+
+    # Table-level tests
+    tests:
+      - unique:
+          column_name: "product_key"
+      - unique:
+          column_name: "product_id"
+      - not_null:
+          column_name: "product_category_name"
+    
