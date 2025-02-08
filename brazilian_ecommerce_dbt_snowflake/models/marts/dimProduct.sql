@@ -1,14 +1,16 @@
 WITH product_keys AS (
- SELECT 
-   product_id,
-   ROW_NUMBER() OVER (ORDER BY product_id) AS product_key
- FROM {{ ref('stg_products') }}
+    SELECT DISTINCT
+        o.product_id,
+        p.product_category_name,
+        ROW_NUMBER() OVER (PARTITION BY o.product_id ORDER BY o.product_id) AS rn
+    FROM {{ ref('OlistOrders') }} o
+    LEFT JOIN {{ ref('stg_products') }} p
+        ON o.product_id = p.product_id
 )
-SELECT
-    product_keys.product_key,
-    stg_products.product_id, 
-    stg_products.product_category_name
+SELECT 
+    ROW_NUMBER() OVER (ORDER BY product_id) AS product_key,
+    product_id,
+    product_category_name
 FROM product_keys
-LEFT JOIN {{ ref('stg_products') }}
-    ON product_keys.product_id = stg_products.product_id
-ORDER BY product_keys.product_key
+WHERE rn = 1
+ORDER BY product_key

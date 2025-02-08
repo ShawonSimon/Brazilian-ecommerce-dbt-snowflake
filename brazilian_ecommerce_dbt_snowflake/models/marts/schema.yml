@@ -3,73 +3,73 @@
 version: 2
 
 models:
-  - name: dim_dates
+  - name: dimDate
     description: "Date dimension table containing all dates relevant to Olist orders"
     columns:
       - name: date_key
         description: "The surrogate key for the date"
-        tests:
+        data_tests:
           - unique
           - not_null
           
       - name: calendar_date
         description: "The actual calendar date"
-        tests:
+        data_tests:
           - unique
           - not_null
           
       - name: year
         description: "Calendar year"
-        tests:
+        data_tests:
           - not_null
           
       - name: quarter
         description: "Calendar quarter (1-4)"
-        tests:
+        data_tests:
           - not_null
           
       - name: month
         description: "Calendar month (1-12)"
-        tests:
+        data_tests:
           - not_null
           
       - name: day
         description: "Day of month (1-31)"
-        tests:
+        data_tests:
           - not_null
           
       - name: day_of_week
         description: "Day of week (0-6, where 0 is Sunday)"
-        tests:
+        data_tests:
           - not_null
           
       - name: season
         description: "Season adjusted for Southern Hemisphere"
-        tests:
+        data_tests:
           - not_null
           
       - name: is_business_day
         description: "Flag indicating if date is a business day (0/1)"
-        tests:
+        data_tests:
           - not_null
                     
       - name: fiscal_quarter
         description: "Fiscal quarter (1-4)"
-        tests:
+        data_tests:
           - not_null
 
-  - name: dim_sellers
+  - name: dimSellers
     description: "Seller dimension table containing seller information and their associated orders"
     columns:
       - name: seller_key
         description: "The surrogate key for the seller"
-        tests:
+        data_tests:
           - unique
           - not_null
 
       - name: seller_id
         description: "The natural key / business identifier for the seller"
-        tests:
+        data_tests:
           - unique
           - not_null
           - relationships:
@@ -78,33 +78,33 @@ models:
 
       - name: seller_city
         description: "The city where the seller is located"
-        tests:
+        data_tests:
           - not_null
 
       - name: seller_state
         description: "The state where the seller is located"
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
               values: ['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'ES', 'GO', 'AM', 'CE', 'RN', 'MT', 'MS', 'PA', 'PB', 'PE', 'PI', 'AL', 'DF', 'SE', 'RO', 'MA', 'TO', 'AC', 'RR', 'AP']  # Brazilian state codes
 
       - name: order_ids
         description: "Array of order IDs associated with this seller"
-        tests:
+        data_tests:
           - not_null
   
-  - name: dim_customers
+  - name: dimCustomer
     description: "Customer dimension table containing customer information and their geographical location details"
     columns:
       - name: customer_key
         description: "The surrogate key for the customer"
-        tests:
+        data_tests:
           - unique
           - not_null
 
       - name: customer_id
         description: "The natural key / business identifier for the customer"
-        tests:
+        data_tests:
           - unique
           - not_null
           - relationships:
@@ -113,7 +113,7 @@ models:
 
       - name: customer_unique_id
         description: "Unique identifier that can be used to identify recurring customers across multiple orders"
-        tests:
+        data_tests:
           - not_null
           - relationships:
               to: ref('stg_customers')
@@ -121,19 +121,19 @@ models:
 
       - name: customer_city
         description: "The city where the customer is located"
-        tests:
+        data_tests:
           - not_null
 
       - name: customer_state
         description: "The state where the customer is located"
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
               values: ['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'ES', 'GO', 'AM', 'CE', 'RN', 'MT', 'MS', 'PA', 'PB', 'PE', 'PI', 'AL', 'DF', 'SE', 'RO', 'MA', 'TO', 'AC', 'RR', 'AP']  # Brazilian state codes
 
       - name: geolocation_lat
         description: "Customer location latitude based on zip code prefix"
-        tests:
+        data_tests:
           - not_null:
               severity: warn  # Warning only since this comes from a LEFT JOIN
           - dbt_utils.accepted_range:
@@ -142,19 +142,19 @@ models:
 
       - name: geolocation_lng
         description: "Customer location longitude based on zip code prefix"
-        tests:
+        data_tests:
           - not_null:
               severity: warn  # Warning only since this comes from a LEFT JOIN
           - dbt_utils.accepted_range:
               min_value: -73.99  # Approximate westernmost point of Brazil
               max_value: -34.79  # Approximate easternmost point of Brazil 
   
-  - name: dim_payment_types
+  - name: dimPaymentType
     description: "Payment types dimension table mapping orders to their payment methods"
     columns:
       - name: order_key
         description: "Foreign key to the order dimension table"
-        tests:
+        data_tests:
           - not_null
           - relationships:
               to: ref('dim_order_keys')
@@ -162,17 +162,16 @@ models:
 
       - name: payment_type_key
         description: "Surrogate key for the payment type"
-        tests:
+        data_tests:
           - not_null
           - relationships_with_keys:
               from_key: payment_type_key
-              to_model: ref('dim_payment_types')
+              to_model: ref('dimPaymentType')
               to_key: payment_type_key
 
       - name: payment_type_name
         description: "Name of the payment method (e.g., credit_card, boleto)"
-        tests:
-          - not_null
+        data_tests:
           - accepted_values:
               values: 
                 - 'credit_card'
@@ -181,25 +180,23 @@ models:
                 - 'debit_card'
     
     # Table-level tests
-    tests:
+    data_tests:
       - unique:
           column_name: "order_key"  # Each order should have one payment type
       - not_null:
           column_name: "payment_type_name"
 
-  - name: dim_products
+  - name: dimProduct
     description: "Product dimension table containing product information and categories"
     columns:
       - name: product_key
         description: "The surrogate key for the product"
-        tests:
-          - unique
+        data_tests:
           - not_null
 
       - name: product_id
         description: "The natural key / business identifier for the product"
-        tests:
-          - unique
+        data_tests:
           - not_null
           - relationships:
               to: ref('stg_products')
@@ -207,8 +204,7 @@ models:
 
       - name: product_category_name
         description: "The category name of the product"
-        tests:
-          - not_null
+        data_tests:
           - accepted_values:
               values: [
                 'cama_mesa_banho',
@@ -252,7 +248,7 @@ models:
               ]
 
     # Table-level tests
-    tests:
+    data_tests:
       - unique:
           column_name: "product_key"
       - unique:

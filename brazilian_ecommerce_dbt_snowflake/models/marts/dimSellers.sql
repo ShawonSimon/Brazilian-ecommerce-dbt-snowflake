@@ -1,24 +1,19 @@
 WITH seller_keys AS (
   SELECT
-    stg_sellers.seller_id,
-    ROW_NUMBER() OVER (ORDER BY stg_sellers.seller_id) AS seller_key
-  FROM {{ ref('stg_sellers') }}
+    o.seller_id AS seller_id,
+    s.seller_city AS seller_city,
+    s.seller_state AS seller_state,
+    ROW_NUMBER() OVER (PARTITION BY o.seller_id ORDER BY o.seller_id) AS seller_key
+  FROM {{ ref('OlistOrders') }} o
+  LEFT JOIN {{ ref('stg_sellers') }} s
+    ON o.seller_id = s.seller_id
 )
+
 SELECT
-  seller_keys.seller_key,
-  stg_sellers.seller_id,
-  stg_sellers.seller_city,
-  stg_sellers.seller_state,
-  ARRAY_AGG(stg_order_items.order_id) AS order_ids
-FROM {{ ref('stg_sellers') }}
-LEFT JOIN seller_keys
-  ON stg_sellers.seller_id = seller_keys.seller_id
-LEFT JOIN {{ ref('stg_order_items') }}
-  ON stg_sellers.seller_id = stg_order_items.seller_id
-GROUP BY
-  seller_keys.seller_key,
-  stg_sellers.seller_id,
-  stg_sellers.seller_city,
-  stg_sellers.seller_state
-ORDER BY
-  seller_keys.seller_key
+  ROW_NUMBER() OVER (ORDER BY seller_id) AS seller_key,
+  seller_id,
+  seller_city,
+  seller_state
+FROM seller_keys
+WHERE seller_key = 1
+ORDER BY seller_key

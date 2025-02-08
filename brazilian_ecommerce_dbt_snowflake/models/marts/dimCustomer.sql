@@ -2,26 +2,27 @@ WITH customer_keys AS (
     SELECT 
         customer_id,
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS customer_key
-    FROM {{ ref('stg_customers') }}
+    FROM {{ ref('OlistOrders') }}
 ),
 select_customers AS (
     SELECT DISTINCT
         customer_keys.customer_key,
-        stg_customers.customer_id,
-        stg_customers.customer_unique_id,
-        stg_customers.customer_city,
-        stg_customers.customer_state,
-        FIRST_VALUE(stg_geolocation.geolocation_lat) OVER (
-            PARTITION BY stg_customers.customer_id
-            ORDER BY stg_customers.customer_id
+        c.customer_id,
+        c.customer_city,
+        c.customer_state,
+        FIRST_VALUE(g.geolocation_lat) OVER (
+            PARTITION BY c.customer_id
+            ORDER BY c.customer_id
         ) AS geolocation_lat,
-        FIRST_VALUE(stg_geolocation.geolocation_lng) OVER (
-            PARTITION BY stg_customers.customer_id
-            ORDER BY stg_customers.customer_id
+        FIRST_VALUE(g.geolocation_lng) OVER (
+            PARTITION BY c.customer_id
+            ORDER BY c.customer_id
         ) AS geolocation_lng
-    FROM {{ ref('stg_customers') }}
-    LEFT JOIN customer_keys ON stg_customers.customer_id = customer_keys.customer_id
-    LEFT JOIN {{ ref('stg_geolocation') }} ON stg_customers.customer_zip_code_prefix = stg_geolocation.geolocation_zip_code_prefix
+    FROM {{ ref('stg_customers') }} c
+    LEFT JOIN customer_keys 
+     ON c.customer_id = customer_keys.customer_id
+    LEFT JOIN {{ ref('stg_geolocation') }} g 
+     ON c.customer_zip_code_prefix = g.geolocation_zip_code_prefix
 )
 SELECT *
 FROM select_customers
