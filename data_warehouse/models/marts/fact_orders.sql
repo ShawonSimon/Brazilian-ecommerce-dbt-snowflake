@@ -10,7 +10,6 @@ SELECT
     ok.order_key,
     c.customer_key,
     s.seller_key,
-    -- Adding product arrays from order_items
     p.product_key,
     -- Date Keys
     d1.date_key as order_purchase_date_key,
