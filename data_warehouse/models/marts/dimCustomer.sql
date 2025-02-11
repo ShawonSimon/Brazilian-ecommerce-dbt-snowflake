@@ -1,7 +1,7 @@
 WITH customer_keys AS (
     SELECT 
         customer_id,
-        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS customer_key
+        ROW_NUMBER() OVER (ORDER BY customer_id) AS customer_key
     FROM {{ ref('OlistOrders') }}
 ),
 select_customers AS (
