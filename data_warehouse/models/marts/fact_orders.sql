@@ -1,13 +1,6 @@
-WITH order_keys AS (
-    SELECT
-        ROW_NUMBER() OVER (PARTITION BY ol.order_id ORDER BY ol.order_id) as order_key,
-        ol.order_id
-    FROM {{ ref('OlistOrders') }} ol
-)
-
 SELECT
     -- Foreign Keys to Dimensions
-    ok.order_key,
+    o.order_key,
     c.customer_key,
     s.seller_key,
     p.product_key,
@@ -39,8 +32,6 @@ SELECT
     END as delivered_on_time,
 
 FROM {{ ref('OlistOrders') }} o
-    LEFT JOIN order_keys ok 
-        ON o.order_id = ok.order_id
     LEFT JOIN {{ ref('dimCustomer') }} c 
         ON o.customer_id = c.customer_id
     LEFT JOIN {{ ref('dimSellers') }} s 
@@ -60,4 +51,3 @@ FROM {{ ref('OlistOrders') }} o
         ON DATE(o.order_delivered_customer_date) = d4.calendar_date
     LEFT JOIN {{ ref('dimDate') }} d5 
         ON DATE(o.order_estimated_delivery_date) = d5.calendar_date
-ORDER BY ok.order_key
