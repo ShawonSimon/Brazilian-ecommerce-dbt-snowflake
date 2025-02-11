@@ -1,6 +1,6 @@
 WITH order_keys AS (
     SELECT
-        ROW_NUMBER() OVER (ORDER BY ol.order_id) as order_key,
+        ROW_NUMBER() OVER (PARTITION BY ol.order_id ORDER BY ol.order_id) as order_key,
         ol.order_id
     FROM {{ ref('OlistOrders') }} ol
 )
@@ -17,20 +17,16 @@ SELECT
     d3.date_key as order_delivered_carrier_date_key,
     d4.date_key as order_delivered_customer_date_key,
     d5.date_key as order_estimated_delivery_date_key,
-    
     -- Order Details
     o.order_status,
-    
     -- Payment Details
     o.payment_sequential,
     o.payment_installments,
     o.payment_value,
     op.payment_type_key,
-    
     -- Order Item Metrics
     o.price,
     o.freight_value,
-    
     -- Calculated Fields
     CASE 
         WHEN o.order_delivered_customer_date is not null 
