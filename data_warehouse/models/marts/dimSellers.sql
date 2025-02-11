@@ -1,5 +1,5 @@
 WITH seller_keys AS (
-  SELECT
+  SELECT DISTINCT
     o.seller_id AS seller_id,
     s.seller_city AS seller_city,
     s.seller_state AS seller_state,
