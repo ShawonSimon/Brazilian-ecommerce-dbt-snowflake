@@ -51,3 +51,4 @@ FROM {{ ref('OlistOrders') }} o
         ON DATE(o.order_delivered_customer_date) = d4.calendar_date
     LEFT JOIN {{ ref('dimDate') }} d5 
         ON DATE(o.order_estimated_delivery_date) = d5.calendar_date
+    ORDER BY o.order_key
