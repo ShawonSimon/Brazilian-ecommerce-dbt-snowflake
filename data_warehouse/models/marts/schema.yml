@@ -246,13 +246,266 @@ models:
                 'climatizacao',
                 'sinalizacao_e_seguranca'
               ]
-
-    # Table-level tests
-    data_tests:
-      - unique:
-          column_name: "product_key"
-      - unique:
-          column_name: "product_id"
-      - not_null:
-          column_name: "product_category_name"
+  
+  - name: OlistOrders
+    description: "Dimensional table containing all order information from the Olist e-commerce platform, including order details, delivery dates, payment information, and associated product and seller data."
     
+    columns:
+      - name: order_key
+        description: "Unique surrogate key for each order, generated using ROW_NUMBER()"
+        tests:
+          - unique
+          - not_null
+
+      - name: order_id
+        description: "Natural key - unique identifier for each order"
+        tests:
+          - unique
+          - not_null
+        relationships:
+          - to: ref('stg_orders')
+            field: order_id
+
+      - name: customer_id
+        description: "Unique identifier for the customer who placed the order"
+        tests:
+          - not_null
+        relationships:
+          - to: ref('stg_customers')
+            field: customer_id
+
+      - name: order_purchase_timestamp
+        description: "Timestamp when the order was placed by the customer"
+        tests:
+          - not_null
+
+      - name: order_approved_at
+        description: "Timestamp when the order was approved"
+
+      - name: order_delivered_carrier_date
+        description: "Date when the order was handed to the logistics carrier"
+
+      - name: order_delivered_customer_date
+        description: "Date when the customer received the order"
+
+      - name: order_estimated_delivery_date
+        description: "Estimated delivery date provided to customer at time of purchase"
+        tests:
+          - not_null
+
+      - name: order_status
+        description: "Current status of the order"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['delivered', 'shipped', 'canceled', 'unavailable', 'processing', 'created']
+
+      - name: product_id
+        description: "Unique identifier for the product in the order"
+        relationships:
+          - to: ref('stg_products')
+            field: product_id
+
+      - name: seller_id
+        description: "Unique identifier for the seller of the product"
+        relationships:
+          - to: ref('stg_sellers')
+            field: seller_id
+
+      - name: price
+        description: "Price of the product (in Brazilian Reais)"
+        tests:
+          - not_null
+          - positive_values
+
+      - name: freight_value
+        description: "Freight value charged for the product (in Brazilian Reais)"
+        tests:
+          - not_null
+          - positive_values
+
+      - name: payment_sequential
+        description: "Sequential payment number for orders with multiple payments"
+        tests:
+          - not_null
+          - positive_values
+
+      - name: payment_type
+        description: "Payment method used for the order"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['credit_card', 'boleto', 'voucher', 'debit_card']
+
+      - name: payment_installments
+        description: "Number of installments for payment"
+        tests:
+          - not_null
+          - positive_values
+
+      - name: payment_value
+        description: "Total value of the payment (in Brazilian Reais)"
+        tests:
+          - not_null
+          - positive_values
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - order_id
+            - product_id
+      
+      - dbt_utils.expression_is_true:
+          expression: "order_approved_at >= order_purchase_timestamp"
+          where: "order_approved_at is not null"
+          
+      - dbt_utils.expression_is_true:
+          expression: "order_delivered_carrier_date >= order_approved_at"
+          where: "order_delivered_carrier_date is not null"
+          
+      - dbt_utils.expression_is_true:
+          expression: "order_delivered_customer_date >= order_delivered_carrier_date"
+          where: "order_delivered_customer_date is not null"
+  
+  - name: fact_orders
+   description: "Fact table containing order transactions with associated dimension keys and metrics"
+   
+   columns:
+     - name: order_key
+       description: "Foreign key to order dimension"
+       tests:
+         - not_null
+         - relationships:
+             to: ref('OlistOrders')
+             field: order_key
+
+     - name: customer_key
+       description: "Foreign key to customer dimension"
+       tests:
+         - relationships:
+             to: ref('dimCustomer') 
+             field: customer_key
+
+     - name: seller_key
+       description: "Foreign key to seller dimension"
+       tests:
+         - relationships:
+             to: ref('dimSellers')
+             field: seller_key
+
+     - name: product_key
+       description: "Foreign key to product dimension"
+       tests:
+         - relationships:
+             to: ref('dimProduct')
+             field: product_key
+
+     - name: order_purchase_date_key
+       description: "Foreign key to date dimension for purchase date"
+       tests:
+         - relationships:
+             to: ref('dimDate')
+             field: date_key
+
+     - name: order_approved_date_key
+       description: "Foreign key to date dimension for approval date"
+       tests:
+         - relationships:
+             to: ref('dimDate')
+             field: date_key
+
+     - name: order_delivered_carrier_date_key
+       description: "Foreign key to date dimension for carrier delivery date"
+       tests:
+         - relationships:
+             to: ref('dimDate')
+             field: date_key
+
+     - name: order_delivered_customer_date_key
+       description: "Foreign key to date dimension for customer delivery date"
+       tests:
+         - relationships:
+             to: ref('dimDate')
+             field: date_key
+
+     - name: order_estimated_delivery_date_key
+       description: "Foreign key to date dimension for estimated delivery date"
+       tests:
+         - relationships:
+             to: ref('dimDate')
+             field: date_key
+
+     - name: order_status
+       description: "Current status of the order"
+       tests:
+         - not_null
+         - accepted_values:
+             values: ['delivered', 'shipped', 'canceled', 'unavailable', 'processing', 'created']
+
+     - name: payment_sequential
+       description: "Sequential payment number for orders with multiple payments"
+       tests:
+         - not_null
+         - positive_values
+
+     - name: payment_installments  
+       description: "Number of installments for payment"
+       tests:
+         - not_null
+         - positive_values
+
+     - name: payment_value
+       description: "Total value of the payment in Brazilian Reais"
+       tests:
+         - not_null
+         - positive_values
+
+     - name: payment_type_key
+       description: "Foreign key to payment type dimension"
+       tests:
+         - relationships:
+             to: ref('dimPaymentType')
+             field: payment_type_key
+
+     - name: price
+       description: "Price of the product in Brazilian Reais"
+       tests:
+         - not_null
+         - positive_values
+
+     - name: freight_value
+       description: "Freight value charged for the product in Brazilian Reais"
+       tests:
+         - not_null
+         - positive_values
+
+     - name: delivery_time_days
+       description: "Number of days between order purchase and customer delivery"
+       tests:
+         - dbt_utils.expression_is_true:
+             expression: "delivery_time_days >= 0"
+             where: "delivery_time_days is not null"
+
+     - name: delivered_on_time
+       description: "Boolean indicating if order was delivered by estimated delivery date"
+       tests:
+         - not_null:
+             where: "order_delivered_customer_date is not null"
+
+   tests:
+     - dbt_utils.expression_is_true:
+         expression: "order_approved_date_key >= order_purchase_date_key"
+         where: "order_approved_date_key is not null"
+         
+     - dbt_utils.expression_is_true:
+         expression: "order_delivered_carrier_date_key >= order_approved_date_key"
+         where: "order_delivered_carrier_date_key is not null"
+         
+     - dbt_utils.expression_is_true:
+         expression: "order_delivered_customer_date_key >= order_delivered_carrier_date_key"
+         where: "order_delivered_customer_date_key is not null"
+
+     - dbt_utils.unique_combination_of_columns:
+         combination_of_columns:
+           - order_key
+           - product_key   
