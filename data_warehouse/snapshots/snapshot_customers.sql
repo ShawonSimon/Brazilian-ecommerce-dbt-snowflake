@@ -5,7 +5,7 @@
       target_database='brazilian_db',
       target_schema='snapshots',
       unique_key='customer_key',
-      strategy='check',
+      strategy='Check',
       check_cols=['customer_city', 'customer_state'],
     )
 }}
