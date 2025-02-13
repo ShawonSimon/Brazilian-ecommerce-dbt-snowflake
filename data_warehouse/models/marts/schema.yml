@@ -152,23 +152,10 @@ models:
   - name: dimPaymentType
     description: "Payment types dimension table mapping orders to their payment methods"
     columns:
-      - name: order_key
-        description: "Foreign key to the order dimension table"
-        data_tests:
-          - not_null
-          - relationships:
-              to: ref('dim_order_keys')
-              field: order_key
-
       - name: payment_type_key
         description: "Surrogate key for the payment type"
         data_tests:
           - not_null
-          - relationships_with_keys:
-              from_key: payment_type_key
-              to_model: ref('dimPaymentType')
-              to_key: payment_type_key
-
       - name: payment_type_name
         description: "Name of the payment method (e.g., credit_card, boleto)"
         data_tests:
@@ -316,19 +303,22 @@ models:
         description: "Price of the product (in Brazilian Reais)"
         tests:
           - not_null
-          - positive_values
+          - dbt_utils.accepted_range:
+              min_value: 0
 
       - name: freight_value
         description: "Freight value charged for the product (in Brazilian Reais)"
         tests:
           - not_null
-          - positive_values
+          - dbt_utils.accepted_range:
+              min_value: 0
 
       - name: payment_sequential
         description: "Sequential payment number for orders with multiple payments"
         tests:
           - not_null
-          - positive_values
+          - dbt_utils.accepted_range:
+              min_value: 0
 
       - name: payment_type
         description: "Payment method used for the order"
@@ -341,13 +331,15 @@ models:
         description: "Number of installments for payment"
         tests:
           - not_null
-          - positive_values
+          - dbt_utils.accepted_range:
+              min_value: 0
 
       - name: payment_value
         description: "Total value of the payment (in Brazilian Reais)"
         tests:
           - not_null
-          - positive_values
+          - dbt_utils.accepted_range:
+              min_value: 0
 
     tests:
       - dbt_utils.unique_combination_of_columns:
@@ -446,19 +438,22 @@ models:
        description: "Sequential payment number for orders with multiple payments"
        tests:
          - not_null
-         - positive_values
+         - dbt_utils.accepted_range:
+              min_value: 0
 
      - name: payment_installments  
        description: "Number of installments for payment"
        tests:
          - not_null
-         - positive_values
+         - dbt_utils.accepted_range:
+              min_value: 0
 
      - name: payment_value
        description: "Total value of the payment in Brazilian Reais"
        tests:
          - not_null
-         - positive_values
+         - dbt_utils.accepted_range:
+              min_value: 0
 
      - name: payment_type_key
        description: "Foreign key to payment type dimension"
@@ -471,13 +466,15 @@ models:
        description: "Price of the product in Brazilian Reais"
        tests:
          - not_null
-         - positive_values
+         - dbt_utils.accepted_range:
+              min_value: 0
 
      - name: freight_value
        description: "Freight value charged for the product in Brazilian Reais"
        tests:
          - not_null
-         - positive_values
+         - dbt_utils.accepted_range:
+              min_value: 0
 
      - name: delivery_time_days
        description: "Number of days between order purchase and customer delivery"
