@@ -368,9 +368,9 @@ models:
           where: "order_delivered_customer_date is not null"
   
   - name: fact_orders
-   description: "Fact table containing order transactions with associated dimension keys and metrics"
+    description: "Fact table containing order transactions with associated dimension keys and metrics"
    
-   columns:
+    columns:
      - name: order_key
        description: "Foreign key to order dimension"
        tests:
@@ -492,7 +492,7 @@ models:
          - not_null:
              where: "order_delivered_customer_date is not null"
 
-   tests:
+    tests:
      - dbt_utils.expression_is_true:
          expression: "order_approved_date_key >= order_purchase_date_key"
          where: "order_approved_date_key is not null"
