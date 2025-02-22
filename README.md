@@ -26,6 +26,8 @@ The project follows a modular architecture:
 3. Transformation: dbt (fact and dimension tables, SCD Type 2 snapshots).
 4. CI/CD: GitHub Actions (automated testing and deployment).
 5. Visualization: Power BI (dashboards and reports).
+A visual representation of the project architecture is shown below
+![alt text](https://github.com/ShawonSimon/brazilian-ecommerce-dbt-snowflake/blob/main/screenshots/dbtSnowflake.drawio.png)
 
 ## CI/CD Pipeline
 
