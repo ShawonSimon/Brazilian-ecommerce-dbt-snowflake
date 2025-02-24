@@ -27,6 +27,9 @@ The project follows a modular architecture:
 4. CI/CD: GitHub Actions (automated testing and deployment).
 5. Visualization: Power BI (dashboards and reports).
 
+A visual representation of the project architecture is shown below
+![alt text](https://github.com/ShawonSimon/brazilian-ecommerce-dbt-snowflake/blob/main/screenshots/dbtSnowflake.drawio.png)
+
 ## CI/CD Pipeline
 
 The CI/CD pipeline is implemented using GitHub Actions:
@@ -41,7 +44,7 @@ SCD Type 2 is implemented using dbt snapshots to track historical changes in dim
 ## Visualization
 
 An interactive dashboard is then created to visualize the data using Power BI as shown below
-![alt text](image.jpg)
+![alt text](https://github.com/ShawonSimon/brazilian-ecommerce-dbt-snowflake/blob/main/screenshots/Dashboard.png)
 
 ## Documentation
 
@@ -51,5 +54,5 @@ The project includes comprehensive documentation generated using dbt docs. The d
 - Column Descriptions: Metadata about columns in each table.
 - Tests: Information about data quality tests applied to the models.
 A snapshot of the DBT Completed DAG can be seen below
-![alt text](image.jpg)
+![alt text](https://github.com/ShawonSimon/brazilian-ecommerce-dbt-snowflake/blob/main/screenshots/dbt-DAG.png)
 
